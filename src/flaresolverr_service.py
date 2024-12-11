@@ -470,7 +470,20 @@ def _evil_logic(req: V1RequestBase, driver: WebDriver, method: str) -> Challenge
     challenge_res.userAgent = utils.get_user_agent(driver)
     challenge_res.turnstile_token = turnstile_token
 
-    if not req.returnOnlyCookies:
+    if req.download:
+        b64img = driver.execute_script(r'''
+            var img = document.getElementsByTagName("img")[0];
+            var canvas = document.createElement("canvas");
+            canvas.width = img.width;
+            canvas.height = img.height;
+            var ctx = canvas.getContext("2d");
+            ctx.drawImage(img, 0, 0);
+            var dataURL = canvas.toDataURL("image/png");
+            return dataURL.replace(/^data:image\/(png|jpg);base64,/, "");
+        ''')
+        challenge_res.headers = {}  # todo: fix, selenium not provides this info
+        challenge_res.response = b64img
+    elif not req.returnOnlyCookies:
         challenge_res.headers = {}  # todo: fix, selenium not provides this info
 
         if req.waitInSeconds and req.waitInSeconds > 0:
