@@ -2,6 +2,9 @@ import logging
 import platform
 import sys
 import time
+import os
+import signal
+import threading
 from datetime import timedelta
 from html import escape
 from urllib.parse import unquote, quote
@@ -115,6 +118,11 @@ def controller_v1_endpoint(req: V1RequestBase) -> V1ResponseBase:
     logging.info(f"Response in {(res.endTimestamp - res.startTimestamp) / 1000} s")
     return res
 
+def _delayed_shutdown():
+    """Gracefully shut down the server after a short delay."""
+    logging.info("Server is shutting down")
+    time.sleep(2)  # Delay to ensure the response is sent
+    os.kill(os.getpid(), signal.SIGTERM)
 
 def _controller_v1_handler(req: V1RequestBase) -> V1ResponseBase:
     # do some validations
@@ -131,7 +139,10 @@ def _controller_v1_handler(req: V1RequestBase) -> V1ResponseBase:
 
     # execute the command
     res: V1ResponseBase
-    if req.cmd == 'sessions.create':
+    if req.cmd == 'shutdown':
+        res = V1ResponseBase({ "status": STATUS_OK, "message": "Shutdown scheduled" })
+        threading.Thread(target=_delayed_shutdown).start()
+    elif req.cmd == 'sessions.create':
         res = _cmd_sessions_create(req)
     elif req.cmd == 'sessions.list':
         res = _cmd_sessions_list(req)
