@@ -166,8 +166,6 @@ def _cmd_request_get(req: V1RequestBase) -> V1ResponseBase:
         raise Exception("Cannot use 'postBody' when sending a GET request.")
     if req.returnRawHtml is not None:
         logging.warning("Request parameter 'returnRawHtml' was removed in FlareSolverr v2.")
-    if req.download is not None:
-        logging.warning("Request parameter 'download' was removed in FlareSolverr v2.")
 
     challenge_res = _resolve_challenge(req, 'GET')
     res = V1ResponseBase({})
@@ -183,8 +181,6 @@ def _cmd_request_post(req: V1RequestBase) -> V1ResponseBase:
         raise Exception("Request parameter 'postData' is mandatory in 'request.post' command.")
     if req.returnRawHtml is not None:
         logging.warning("Request parameter 'returnRawHtml' was removed in FlareSolverr v2.")
-    if req.download is not None:
-        logging.warning("Request parameter 'download' was removed in FlareSolverr v2.")
 
     challenge_res = _resolve_challenge(req, 'POST')
     res = V1ResponseBase({})
