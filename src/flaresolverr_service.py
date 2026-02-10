@@ -398,7 +398,7 @@ def _evil_logic(req: V1RequestBase, driver: WebDriver, method: str) -> Challenge
     # wait for the page
     if utils.get_config_log_html():
         logging.debug(f"Response HTML:\n{driver.page_source}")
-    html_element = driver.find_element(By.TAG_NAME, "html")
+    # html_element = driver.find_element(By.TAG_NAME, "html")
     page_title = driver.title
 
     # find access denied titles
@@ -460,6 +460,7 @@ def _evil_logic(req: V1RequestBase, driver: WebDriver, method: str) -> Challenge
         logging.debug("Waiting for redirect")
         # noinspection PyBroadException
         try:
+            html_element = driver.find_element(By.TAG_NAME, "html")
             WebDriverWait(driver, SHORT_TIMEOUT).until(staleness_of(html_element))
         except Exception:
             logging.debug("Timeout waiting for redirect")
@@ -484,13 +485,14 @@ def _evil_logic(req: V1RequestBase, driver: WebDriver, method: str) -> Challenge
                     if (!response.ok) throw new Error('Network response was not ok');
                     return response.blob();
                 })
-                .then(blob => new Promise((resolve, reject) => {
+                .then((blob) => new Promise((resolve, reject) => {
                     const reader = new FileReader();
                     reader.onloadend = () => resolve(reader.result);
                     reader.onerror = reject;
                     reader.readAsDataURL(blob);
                 }))
-                .catch(error => { throw error });
+                .then((data) => data.replace(/^data:image\/(.*);base64,/, ""))
+                .catch((error) => { throw error });
         ''')
         challenge_res.headers = {}  # todo: fix, selenium not provides this info
         challenge_res.response = b64img
