@@ -1,10 +1,14 @@
-name: Deploy to VPS
+name: Build image
 
 # Volt runs this fork rather than upstream: game_engine sends a `download` flag
 # (game_engine/src/services/hltv/mod.rs) that only this fork implements, so the
 # sidecar has to be built from here.
 #
 # The fork's default branch is master, not main.
+#
+# The image is pulled by the scraper on the VPS (volt-server deploy/vps,
+# `sudo /opt/volt-scraper/update.sh`); Dokploy is gone, so there is no deploy
+# step here.
 
 on:
   push:
@@ -12,7 +16,7 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: deploy-vps
+  group: build-image
   cancel-in-progress: false
 
 permissions:
@@ -55,14 +59,3 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-      - name: Trigger Dokploy deployment
-        run: |
-          curl -fsS -X POST "${{ secrets.DOKPLOY_URL }}/api/application.deploy" \
-            -H "x-api-key: ${{ secrets.DOKPLOY_API_KEY }}" \
-            -H "Content-Type: application/json" \
-            -d '{"applicationId":"${{ secrets.DOKPLOY_APP_ID }}"}'
